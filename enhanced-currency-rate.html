@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Rate by Yusuf Jamal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        ring: "hsl(var(--ring))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(var(--secondary))",
+                            foreground: "hsl(var(--secondary-foreground))",
+                        },
+                        destructive: {
+                            DEFAULT: "hsl(var(--destructive))",
+                            foreground: "hsl(var(--destructive-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(var(--accent))",
+                            foreground: "hsl(var(--accent-foreground))",
+                        },
+                        popover: {
+                            DEFAULT: "hsl(var(--popover))",
+                            foreground: "hsl(var(--popover-foreground))",
+                        },
+                        card: {
+                            DEFAULT: "hsl(var(--card))",
+                            foreground: "hsl(var(--card-foreground))",
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/css">
+        @layer base {
+            :root {
+                --background: 0 0% 100%;
+                --foreground: 222.2 84% 4.9%;
+                --card: 0 0% 100%;
+                --card-foreground: 222.2 84% 4.9%;
+                --popover: 0 0% 100%;
+                --popover-foreground: 222.2 84% 4.9%;
+                --primary: 222.2 47.4% 11.2%;
+                --primary-foreground: 210 40% 98%;
+                --secondary: 210 40% 96.1%;
+                --secondary-foreground: 222.2 47.4% 11.2%;
+                --muted: 210 40% 96.1%;
+                --muted-foreground: 215.4 16.3% 46.9%;
+                --accent: 210 40% 96.1%;
+                --accent-foreground: 222.2 47.4% 11.2%;
+                --destructive: 0 84.2% 60.2%;
+                --destructive-foreground: 210 40% 98%;
+                --border: 214.3 31.8% 91.4%;
+                --input: 214.3 31.8% 91.4%;
+                --ring: 222.2 84% 4.9%;
+                --radius: 0.5rem;
+            }
+            .dark {
+                --background: 222.2 84% 4.9%;
+                --foreground: 210 40% 98%;
+                --card: 222.2 84% 4.9%;
+                --card-foreground: 210 40% 98%;
+                --popover: 222.2 84% 4.9%;
+                --popover-foreground: 210 40% 98%;
+                --primary: 210 40% 98%;
+                --primary-foreground: 222.2 47.4% 11.2%;
+                --secondary: 217.2 32.6% 17.5%;
+                --secondary-foreground: 210 40% 98%;
+                --muted: 217.2 32.6% 17.5%;
+                --muted-foreground: 215 20.2% 65.1%;
+                --accent: 217.2 32.6% 17.5%;
+                --accent-foreground: 210 40% 98%;
+                --destructive: 0 62.8% 30.6%;
+                --destructive-foreground: 210 40% 98%;
+                --border: 217.2 32.6% 17.5%;
+                --input: 217.2 32.6% 17.5%;
+                --ring: 212.7 26.8% 83.9%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground">
+    <nav class="bg-primary text-primary-foreground shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0">
+                        <span class="text-2xl font-bold">Currency Rate</span>
+                        <sup class="ml-1 text-xs">by Yusuf Jamal</sup>
+                    </a>
+                </div>
+                <div class="flex items-center">
+                    <select id="theme-select" class="bg-secondary text-secondary-foreground rounded-md text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="system">System</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+        <div class="bg-card shadow-md rounded-lg max-w-4xl mx-auto">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-center mb-6">Currency Converter</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <form id="converter-form" class="space-y-4">
+                            <div class="space-y-2">
+                                <label for="amount" class="block text-sm font-medium">Amount</label>
+                                <input type="number" id="amount" name="amount" required
+                                       class="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md text-sm shadow-sm placeholder-muted-foreground
+                                              focus:outline-none focus:border-ring focus:ring-1 focus:ring-ring"
+                                       placeholder="Enter amount">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label for="fromCurrency" class="block text-sm font-medium">From</label>
+                                    <select id="fromCurrency" name="fromCurrency" required
+                                            class="mt-1 block w-full pl-3 pr-10 py-2 text-sm bg-background border-input focus:outline-none focus:ring-ring focus:border-ring rounded-md">
+                                        <option value="">Select currency</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="toCurrency" class="block text-sm font-medium">To</label>
+                                    <select id="toCurrency" name="toCurrency" required
+                                            class="mt-1 block w-full pl-3 pr-10 py-2 text-sm bg-background border-input focus:outline-none focus:ring-ring focus:border-ring rounded-md">
+                                        <option value="">Select currency</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" id="convert-btn"
+                                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                Convert
+                            </button>
+                        </form>
+                        <div id="result" class="mt-4 p-4 bg-secondary rounded-md hidden">
+                            <p class="text-center" id="result-text"></p>
+                        </div>
+                        <div id="error" class="mt-4 p-4 bg-destructive/20 rounded-md text-destructive hidden"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Exchange Rate Chart</h3>
+                        <canvas id="exchangeRateChart"></canvas>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold mb-2">Historical Data</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-secondary">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-secondary-foreground uppercase tracking-wider">Date</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-secondary-foreground uppercase tracking-wider">Exchange Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historicalDataBody" class="bg-background divide-y divide-gray-200">
+                                <!-- Historical data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://api.exchangerate-api.com/v4/latest/USD';
+        const HISTORICAL_API_URL = 'https://api.exchangerate-api.com/v4/history/USD/';
+        const form = document.getElementById('converter-form');
+        const amountInput = document.getElementById('amount');
+        const fromCurrencySelect = document.getElementById('fromCurrency');
+        const toCurrencySelect = document.getElementById('toCurrency');
+        const convertBtn = document.getElementById('convert-btn');
+        const resultDiv = document.getElementById('result');
+        const resultText = document.getElementById('result-text');
+        const errorDiv = document.getElementById('error');
+        const themeSelect = document.getElementById('theme-select');
+        const historicalDataBody = document.getElementById('historicalDataBody');
+
+        let exchangeRates = {};
+        let chart;
+
+        async function fetchExchangeRates() {
+            convertBtn.disabled = true;
+            convertBtn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Loading...';
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch exchange rates');
+                }
+                const data = await response.json();
+                exchangeRates = data.rates;
+                populateCurrencySelects();
+                updateExchangeRateChart();
+                fetchHistoricalData();
+            } catch (err) {
+                showError('Failed to fetch exchange rates. Please try again later.');
+            } finally {
+                convertBtn.disabled = false;
+                convertBtn.textContent = 'Convert';
+            }
+        }
+
+        function populateCurrencySelects() {
+            const currencies = Object.keys(exchangeRates);
+            currencies.forEach(currency => {
+                const option = new Option(currency, currency);
+                fromCurrencySelect.add(option.cloneNode(true));
+                toCurrencySelect.add(option);
+            });
+            fromCurrencySelect.value = 'USD';
+            toCurrencySelect.value = 'EUR';
+        }
+
+        function convertCurrency() {
+            const amount = parseFloat(amountInput.value);
+            const fromCurrency = fromCurrencySelect.value;
+            const toCurrency = toCurrencySelect.value;
+
+            if (isNaN(amount) || !fromCurrency || !toCurrency) {
+                showError('Please fill in all fields correctly.');
+                return;
+            }
+
+            const fromRate = exchangeRates[fromCurrency];
+            const toRate = exchangeRates[toCurrency];
+            const convertedAmount = ((amount / fromRate) * toRate).toFixed(2);
+
+            resultText.textContent = `${amount} ${fromCurrency} = ${convertedAmount} ${toCurrency}`;
+            resultDiv.classList.remove('hidden');
+            errorDiv.classList.add('hidden');
+
+            updateExchangeRateChart();
+        }
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+        }
+
+        function updateExchangeRateChart() {
+            const fromCurrency = fromCurrencySelect.value;
+            const toCurrency = toCurrencySelect.value;
+            const rate = exchangeRates[toCurrency] / exchangeRates[fromCurrency];
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            const ctx = document.getElementById('exchangeRateChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Current Rate'],
+                    datasets: [{
+                        label: `${fromCurrency} to ${toCurrency}`,
+                        data: [rate],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        async function fetchHistoricalData() {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 7);
+
+            const url = `${HISTORICAL_API_URL}${startDate.toISOString().split('T')[0]}/${endDate.toISOString().split('T')[0]}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch historical data');
+                }
+                const data = await response.json();
+                displayHistoricalData(data.rates);
+            } catch (err) {
+                console.error('Error fetching historical data:', err);
+            }
+        }
+
+        function displayHistoricalData(historicalRates) {
+            const toCurrency = toCurrencySelect.value;
+            historicalDataBody.innerHTML = '';
+
+            Object.entries(historicalRates).forEach(([date, rates]) => {
+                const row = document.createElement('tr');
+                const dateCell = document.createElement('td');
+                const rateCell = document.createElement('td');
+
+                dateCell.textContent = date;
+                dateCell.className = 'px-6 py-4 whitespace-nowrap text-sm';
+                rateCell.textContent = rates[toCurrency].toFixed(4);
+                rateCell.className = 'px-6 py-4 whitespace-nowrap text-sm';
+
+                row.appendChild(dateCell);
+                row.appendChild(rateCell);
+                historicalDataBody.appendChild(row);
+            });
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            convertCurrency();
+        });
+
+        // Theme handling
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else if (theme === 'system') {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        themeSelect.addEventListener('change', (e) => {
+            setTheme(e.target.value);
+        });
+
+        // Set initial theme
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        themeSelect.value = savedTheme;
+        setTheme(savedTheme);
+
+        fetchExchangeRates();
+    </script>
+</body>
+</html>
